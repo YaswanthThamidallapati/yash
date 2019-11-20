@@ -1,0 +1,59 @@
+#define BLYNK_PRINT Serial
+#include<Servo.h>
+#include<ESP8266WiFi.h>
+#include<BlynkSimpleEsp8266.h>
+Servo gate; //you may open or close gate using a Servo motor
+int slot1 = 5; //Connect IR sensor on digital pin5 for sLOT 1
+int slot2 = 4; //sLot2 pin on digital 4
+int gateSensor = 16; //IR sensor on gate to arduino pin 3
+char auth[] = "b6f7e82f0fad43308cc33efafae4754b";
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "Enter ID";
+char pass[] = "Enter Password";
+void setup()
+{
+    // Debug console
+    Serial.begin(9600);
+     Blynk.begin(auth, ssid, pass);
+     gate.attach(2); //connecting the gate servo on pin 5
+     //setting slot pins & gate IR sensor as input to ESP8266
+     pinMode(slot1,INPUT); 
+     pinMode(slot2,INPUT);
+     pinMode(gateSensor,INPUT);
+}
+void loop()
+{
+ Blynk.run();
+ if( !(digitalRead(gateSensor)) && digitalRead(slot1) && digitalRead(slot2)) //slot1 & slot2 empty
+ {
+      Serial.println("Welcome, Available: sLOT1, sLOT2"); //printslot1 and slo2 available
+      Blynk.email("enteryourmail@gmail.com", "WELCOME TO SMARTPARKING SYSTEM", "AVAILABLE SLOTS : Slot1 & Slot2");
+      Blynk.notify("WELCOME TO SMART PARKING SYSTEM - AVAILABLESLOTS: Slot1, Slot2");
+      delay(1000);
+      gate.write(75); //gate will open after the dealy of 1 second
+ }
+ if( !(digitalRead(gateSensor)) && !(digitalRead(slot1)) && digitalRead(slot2)) //car on slot1,slot2 free
+ {
+       Serial.println("Welcome, Available: sLOT2"); // slo2available
+       Blynk.email("enteryourmail@gmail.com", "WELCOME TO SMART PARKING SYSTEM", "AVAILABLE SLOTS : Slot 2 only");
+       Blynk.notify("WELCOME TO SMART PARKING SYSTEM - AVAILABLE SLOT:  Slot2");
+       delay(1000);
+       gate.write(75); //gate will open after the dealy of 1 second
+ }
+ if( !(digitalRead(gateSensor)) && digitalRead(slot1) && !(digitalRead(slot2))) //car on slot2,slot1 free
+ {
+       Serial.println("Welcome, Available: sLOT1"); // slo1 available
+       Blynk.email("enteryourmail@gmail.com", "WELCOME TO SMART PARKING SYSTEM", "AVAILABLE SLOTS : Slot 1 only");
+       Blynk.notify("WELCOME TO SMART PARKING SYSTEM - AVAILABLE SLOT:  Slot1");
+       delay(1000);
+       gate.write(75);
+       delay(100); //gate will open after the dealy of 1 second
+ }
+ if( !(digitalRead(gateSensor)) && !(digitalRead(slot1)) && !(digitalRead(slot2)))
+ {
+      Serial.println("Welcome, Parking Full");// No slot available
+      Blynk.email("enteryourmail@gmail.com", "WELCOME TO SMART PARKING SYSTEM", "sorry parking full");
+      Blynk.notify("WELCOME TO SMART PARKING SYSTEM - AVAILABLE SLOT:  Sorry Parking Full");
+ }
+}
